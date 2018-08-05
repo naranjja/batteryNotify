@@ -7,6 +7,7 @@
         <Label class="text-center h2" text="When should we notify you to charge your phone?" textWrap="true" />
         <TextField keyboardType="number" maxLength="2" text="{{ targetBatteryLevel }}" />
         <Button text="Set" tap="onSetTargetBatteryLevel" />
+        <Button text="Cancel all notifications" tap="onCancelNotificationsTap" />
     </StackLayout>
 
 </Page>

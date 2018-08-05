@@ -31,6 +31,7 @@ exports.onNavigatingTo = (args) => {
 
 exports.onSetTargetBatteryLevel = (args) => {
     const page = args.object
+    LocalNotifications.cancelAll()
     const targetBatteryLevel = parseFloat(page.bindingContext.get("targetBatteryLevel"))
     if (!isNaN(targetBatteryLevel)) {
         if (targetBatteryLevel >= 1 && targetBatteryLevel <= 99) {
@@ -55,4 +56,8 @@ exports.onSetTargetBatteryLevel = (args) => {
         })
         page.bindingContext.set("targetBatteryLevel", defaultTargetBatteryLevel)
     }
+}
+
+exports.onCancelNotificationsTap = (args) => {
+    LocalNotifications.cancelAll()
 }
