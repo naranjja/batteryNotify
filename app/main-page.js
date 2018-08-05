@@ -1,10 +1,9 @@
 const LocalNotifications = require("nativescript-local-notifications")
 const power = require("nativescript-powerinfo")
 const dialogs = require("ui/dialogs")
+const Observable = require("data/observable").fromObject
 
-const getBatteryLevel = () => new Promise((resolve, reject) => {
-    power.startPowerUpdates((Info) => resolve(Info.percent))
-})
+const defaultTargetBatteryLevel = 10
 
 const notifyBatteryLevel = (batteryLevel) => {
     LocalNotifications.schedule([{
@@ -16,9 +15,44 @@ const notifyBatteryLevel = (batteryLevel) => {
 
 exports.onNavigatingTo = (args) => {
     const page = args.object
+    
+    page.bindingContext = new Observable({
+        targetBatteryLevel: defaultTargetBatteryLevel
+    })
+
+    power.startPowerUpdates((batteryInfo) => {
+        if (batteryInfo.percent <= page.bindingContext.get("targetBatteryLevel")) {
+            notifyBatteryLevel(batteryInfo.percent)
+            power.stopPowerUpdates()
+        }
+    })
+    
 }
 
-exports.onNotificationTap = (args) => {
-    getBatteryLevel()
-        .then((batteryLevel) => notifyBatteryLevel(batteryLevel))
+exports.onSetTargetBatteryLevel = (args) => {
+    const page = args.object
+    const targetBatteryLevel = parseFloat(page.bindingContext.get("targetBatteryLevel"))
+    if (!isNaN(targetBatteryLevel)) {
+        if (targetBatteryLevel >= 1 && targetBatteryLevel <= 99) {
+            dialogs.confirm({
+                title: "Success",
+                message: `Target battery level notification set to ${targetBatteryLevel}%!`,
+                okButtonText: "OK"
+            })
+        } else {
+            dialogs.confirm({
+                title: "Error",
+                message: "Battery level must be between 1 and 99",
+                okButtonText: "OK"
+            })
+            page.bindingContext.set("targetBatteryLevel", defaultTargetBatteryLevel) 
+        }
+    } else {
+        dialogs.confirm({
+            title: "Error",
+            message: "Battery level must be a number",
+            okButtonText: "OK"
+        })
+        page.bindingContext.set("targetBatteryLevel", defaultTargetBatteryLevel)
+    }
 }
